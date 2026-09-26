@@ -35,6 +35,11 @@ import { LiveTerminal } from './components/Dashboard/LiveTerminal.tsx';
 import { SystemHealth } from './components/Dashboard/SystemHealth.tsx';
 import { Performance } from './components/Dashboard/Performance.tsx';
 import { Pricing } from './components/Dashboard/Pricing.tsx';
+import { useAuth } from './hooks/useAuth.ts';
+import { useUserProfile } from './hooks/useUserProfile.ts';
+import { AuthGateOverlay } from './components/Common/AuthGateOverlay.tsx';
+import { AIChatbot } from './components/Common/AIChatbot.tsx';
+import { MacroNewsFeed } from './components/Dashboard/MacroNewsFeed.tsx';
 
 interface BotSpec {
   id: string;
@@ -325,6 +330,9 @@ export class InstitutionalErrorBoundary extends Component<ErrorBoundaryProps, Er
 }
 
 function TrinityCommandCenter() {
+  const { user, loading: authLoading, loginWithGoogle, logout, isAuthenticated } = useAuth();
+  const { profile: userProfile, updateSubscriptionTier } = useUserProfile(user);
+
   const [currentView, setCurrentView] = useState<NavViewId>('command-center');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [selectedBotId, setSelectedBotId] = useState<string>('alpha');
@@ -510,6 +518,11 @@ function TrinityCommandCenter() {
           onToggleMobileMenu={() => setMobileMenuOpen(true)}
           onQuickRefresh={handleSyncData}
           isRefreshing={isLoadingData || isPingingAll}
+          user={user}
+          loadingAuth={authLoading}
+          onLogin={loginWithGoogle}
+          onLogout={logout}
+          userProfile={userProfile}
         />
 
         {/* View Content Body */}
@@ -832,6 +845,9 @@ function TrinityCommandCenter() {
                   })}
                 </div>
               </div>
+
+              {/* Real-Time Macro-Economic News Feed (Contextual sentinel justifications) */}
+              <MacroNewsFeed />
 
               {/* Bot Matrix - Core 10 Bot Grid Component */}
               <BotMatrix 
@@ -1322,7 +1338,15 @@ function TrinityCommandCenter() {
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-6"
             >
-              <Performance />
+              <AuthGateOverlay
+                isAuthenticated={isAuthenticated}
+                onLogin={loginWithGoogle}
+                isLoading={authLoading}
+                title="Conectează-te pentru a accesa datele live și auditul de performanță"
+                subtitle="Raportul complet Myfxbook, detaliile tranzacțiilor pe secundă și curba de capital sunt accesibile utilizatorilor înregistrați."
+              >
+                <Performance />
+              </AuthGateOverlay>
             </motion.div>
           )}
 
@@ -1336,7 +1360,19 @@ function TrinityCommandCenter() {
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-6"
             >
-              <Pricing />
+              <AuthGateOverlay
+                isAuthenticated={isAuthenticated}
+                onLogin={loginWithGoogle}
+                isLoading={authLoading}
+                title="Conectează-te pentru a accesa datele live și abonamentele VIP"
+                subtitle="Activează copierea automată cTrader Copy sau accesează semnalele algoritmice directe ale flotei Trinity Fund."
+              >
+                <Pricing
+                  userProfile={userProfile}
+                  onNavigateToCommandCenter={() => setCurrentView('command-center')}
+                  onUpgradeTier={updateSubscriptionTier}
+                />
+              </AuthGateOverlay>
             </motion.div>
           )}
           </AnimatePresence>
@@ -1354,6 +1390,9 @@ function TrinityCommandCenter() {
             </div>
           </div>
         </footer>
+
+        {/* Global Floating AI Contextual Assistant (Trinity AI Support) */}
+        <AIChatbot />
       </div>
     </div>
   );

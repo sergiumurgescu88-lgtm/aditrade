@@ -1,0 +1,16 @@
+{
+  "entities": {
+    "UserProfile": {
+      "collection": "users",
+      "fields": {
+        "uid": { "type": "string", "description": "Firebase Auth user ID" },
+        "email": { "type": "string", "description": "User email address" },
+        "displayName": { "type": "string", "description": "Display name of the user" },
+        "subscriptionTier": { "type": "string", "description": "SaaS plan: FREE, VIP_SIGNALS, or COPY_TRADING_PRO" },
+        "cTraderConnected": { "type": "boolean", "description": "Whether cTrader Copy is connected" },
+        "createdAt": { "type": "string", "description": "ISO timestamp of account creation" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp of last update" }
+      }
+    }
+  }
+}

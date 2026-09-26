@@ -6,8 +6,14 @@ import {
   Radio, 
   ShieldCheck,
   Zap,
-  RefreshCw
+  RefreshCw,
+  LogIn,
+  LogOut,
+  User as UserIcon,
+  Crown
 } from 'lucide-react';
+import { MockUser } from '../../hooks/useAuth';
+import { UserProfile } from '../../hooks/useUserProfile';
 
 interface HeaderProps {
   currentTitle: string;
@@ -15,6 +21,11 @@ interface HeaderProps {
   onToggleMobileMenu: () => void;
   onQuickRefresh?: () => void;
   isRefreshing?: boolean;
+  user?: MockUser | null;
+  loadingAuth?: boolean;
+  onLogin?: () => void;
+  onLogout?: () => void;
+  userProfile?: UserProfile | null;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -22,7 +33,12 @@ export const Header: React.FC<HeaderProps> = ({
   currentSubtitle,
   onToggleMobileMenu,
   onQuickRefresh,
-  isRefreshing = false
+  isRefreshing = false,
+  user,
+  loadingAuth = false,
+  onLogin,
+  onLogout,
+  userProfile
 }) => {
   const [utcTime, setUtcTime] = useState<string>('');
 
@@ -121,6 +137,56 @@ export const Header: React.FC<HeaderProps> = ({
             ONLINE • 99.9%
           </span>
         </motion.div>
+
+        {/* Auth / Account Profile Section */}
+        {user ? (
+          <div className="flex items-center gap-2 pl-1 border-l border-slate-700/60">
+            <div className="hidden lg:flex flex-col text-right">
+              <span className="text-xs font-mono font-bold text-white max-w-[120px] truncate">
+                {user.displayName || user.email?.split('@')[0]}
+              </span>
+              <span className="text-[10px] font-mono text-[#66FCF1] flex items-center justify-end gap-1">
+                {userProfile?.subscriptionTier === 'COPY_TRADING_PRO' && <Crown className="w-3 h-3 text-[#10B981]" />}
+                {userProfile?.subscriptionTier || 'FREE'}
+              </span>
+            </div>
+
+            {user.photoURL ? (
+              <img
+                src={user.photoURL}
+                alt={user.displayName || 'User'}
+                className="w-8 h-8 rounded-full border border-[#66FCF1]/50 object-cover"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-[#1F2833] border border-[#66FCF1]/50 flex items-center justify-center text-[#66FCF1] font-mono text-xs font-bold">
+                {(user.displayName || user.email || 'U')[0].toUpperCase()}
+              </div>
+            )}
+
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-lg bg-[#1F2833]/70 hover:bg-[#EF4444]/20 border border-slate-700/60 text-[#94A3B8] hover:text-[#EF4444] transition-all duration-300"
+                title="Deconectare"
+                aria-label="Deconectare cont"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        ) : (
+          onLogin && (
+            <button
+              onClick={onLogin}
+              disabled={loadingAuth}
+              className="min-h-[44px] px-3 sm:px-4 py-2 rounded-lg bg-[#1F2833]/90 hover:bg-[#66FCF1]/10 border border-[#66FCF1]/50 text-[#66FCF1] hover:text-white transition-all duration-300 text-xs font-mono font-bold flex items-center gap-2 shadow-md hover:shadow-[#66FCF1]/20 disabled:opacity-50"
+            >
+              <LogIn className="w-4 h-4 text-[#66FCF1]" />
+              <span className="hidden sm:inline">Login / Sign Up</span>
+              <span className="sm:hidden">Login</span>
+            </button>
+          )
+        )}
       </div>
     </header>
   );

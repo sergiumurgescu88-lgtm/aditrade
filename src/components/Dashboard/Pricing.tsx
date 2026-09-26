@@ -16,8 +16,11 @@ import {
   Building2,
   Lock,
   ExternalLink,
-  X
+  X,
+  CheckCircle2,
+  Sliders
 } from 'lucide-react';
+import { UserProfile, SubscriptionTier } from '../../hooks/useUserProfile';
 
 interface PricingTier {
   id: string;
@@ -31,6 +34,12 @@ interface PricingTier {
   ctaLabel: string;
   ctaAction: string;
   tagline: string;
+}
+
+interface PricingProps {
+  userProfile?: UserProfile | null;
+  onNavigateToCommandCenter?: () => void;
+  onUpgradeTier?: (tier: SubscriptionTier) => void;
 }
 
 const PRICING_TIERS: PricingTier[] = [
@@ -115,9 +124,15 @@ const FAQ_ITEMS: FAQItem[] = [
   }
 ];
 
-export const Pricing: React.FC = () => {
+export const Pricing: React.FC<PricingProps> = ({
+  userProfile,
+  onNavigateToCommandCenter,
+  onUpgradeTier
+}) => {
   const [openFaq, setOpenFaq] = useState<string | null>('faq-1');
   const [modalTier, setModalTier] = useState<PricingTier | null>(null);
+
+  const isCopyTradingActive = userProfile?.subscriptionTier === 'COPY_TRADING_PRO';
 
   const toggleFaq = (id: string) => {
     setOpenFaq(prev => (prev === id ? null : id));
@@ -138,6 +153,44 @@ export const Pricing: React.FC = () => {
           Execuție algoritmică de mare viteză pe XAUUSD. Fie că alegi copiere automată sau licență instituțională dedicată, capitalul tău este protejat de aceleași sentinele de risc.
         </p>
       </div>
+
+      {/* User Connected Status & Firestore Tier Selector */}
+      {userProfile && (
+        <div className="bg-[#121822]/90 border border-slate-700/80 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono shadow-md">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#10B981] animate-pulse shrink-0" />
+            <span className="text-slate-300">
+              Cont Conectat: <strong className="text-white">{userProfile.email}</strong>
+            </span>
+            <span className="px-2 py-0.5 rounded bg-[#66FCF1]/15 text-[#66FCF1] border border-[#66FCF1]/30 font-bold text-[11px]">
+              {userProfile.subscriptionTier}
+            </span>
+            {isCopyTradingActive && (
+              <span className="px-2 py-0.5 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 text-[10px] font-bold">
+                cTrader Sync ACTIV
+              </span>
+            )}
+          </div>
+          {onUpgradeTier && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-slate-400 text-[11px]">Schimbă Plan (Mock Auth):</span>
+              {(['FREE', 'VIP_SIGNALS', 'COPY_TRADING_PRO'] as const).map((tier) => (
+                <button
+                  key={tier}
+                  onClick={() => onUpgradeTier(tier)}
+                  className={`min-h-[32px] px-2.5 py-1 rounded text-[10px] font-mono transition-all ${
+                    userProfile.subscriptionTier === tier
+                      ? 'bg-[#10B981] text-black font-bold shadow-sm shadow-[#10B981]/30'
+                      : 'bg-slate-800 text-slate-300 hover:text-white border border-slate-700'
+                  }`}
+                >
+                  {tier === 'COPY_TRADING_PRO' ? 'COPY TRADING' : tier === 'VIP_SIGNALS' ? 'VIP SIGNALS' : 'FREE'}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 2. Three Horizontal Pricing Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch pt-2">
@@ -214,17 +267,33 @@ export const Pricing: React.FC = () => {
 
               {/* Action Button */}
               <div className="pt-2">
-                <button
-                  onClick={() => setModalTier(tier)}
-                  className={`w-full min-h-[46px] px-4 py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
-                    isPopular
-                      ? 'bg-[#66FCF1] hover:bg-[#52e5d9] text-black shadow-[#66FCF1]/25 hover:shadow-lg hover:shadow-[#66FCF1]/35'
-                      : 'bg-[#121822] hover:bg-[#1A2330] text-[#E2E8F0] border border-slate-700/80 hover:border-[#66FCF1]/40'
-                  }`}
-                >
-                  <span>{tier.ctaLabel}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                {tier.id === 'copy-trading-pro' && isCopyTradingActive ? (
+                  <button
+                    onClick={() => {
+                      if (onNavigateToCommandCenter) {
+                        onNavigateToCommandCenter();
+                      } else {
+                        setModalTier(tier);
+                      }
+                    }}
+                    className="w-full min-h-[46px] px-4 py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-300 shadow-lg bg-[#10B981] hover:bg-[#0ea571] text-black shadow-[#10B981]/25 hover:shadow-[#10B981]/40"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>✅ Activ - Accesează Panoul de Control</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setModalTier(tier)}
+                    className={`w-full min-h-[46px] px-4 py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
+                      isPopular
+                        ? 'bg-[#66FCF1] hover:bg-[#52e5d9] text-black shadow-[#66FCF1]/25 hover:shadow-lg hover:shadow-[#66FCF1]/35'
+                        : 'bg-[#121822] hover:bg-[#1A2330] text-[#E2E8F0] border border-slate-700/80 hover:border-[#66FCF1]/40'
+                    }`}
+                  >
+                    <span>{tier.ctaLabel}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </motion.div>
           );
