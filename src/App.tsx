@@ -334,11 +334,47 @@ function TrinityCommandCenter() {
   const { user, loading: authLoading, loginWithGoogle, logout, isAuthenticated } = useAuth();
   const { profile: userProfile, updateSubscriptionTier } = useUserProfile(user);
 
-  const [currentView, setCurrentView] = useState<NavViewId>('command-center');
+  const VALID_VIEWS: NavViewId[] = [
+    'command-center',
+    'bot-matrix',
+    'live-terminal',
+    'system-health',
+    'performance',
+    'pricing'
+  ];
+
+  const getViewFromHash = (): NavViewId => {
+    if (typeof window === 'undefined') return 'command-center';
+    const hash = window.location.hash.replace(/^#\/?/, '').trim();
+    return (VALID_VIEWS as string[]).includes(hash) ? (hash as NavViewId) : 'command-center';
+  };
+
+  const [currentView, setCurrentViewInternal] = useState<NavViewId>(getViewFromHash);
+
+  const setCurrentView = (view: NavViewId) => {
+    setCurrentViewInternal(view);
+    if (typeof window !== 'undefined' && window.location.hash !== `#/${view}`) {
+      window.location.hash = `#/${view}`;
+    }
+  };
+
+  // Sync Hash changes bidirectionally (handles browser Back/Forward, direct bookmarks, and zero-404 refresh on Nginx)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const targetView = getViewFromHash();
+      setCurrentViewInternal(targetView);
+    };
+
+    if (typeof window !== 'undefined' && !window.location.hash) {
+      window.history.replaceState(null, '', '#/command-center');
+    }
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [selectedBotId, setSelectedBotId] = useState<string>('alpha');
-  const [testCmd, setTestCmd] = useState<string>('alpha-sniper/strategy_engine_sniper.py');
-  const [surgicalMarker, setSurgicalMarker] = useState<string>('WHALE_THRESHOLD_RATIO');
 
   const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
   const [shouldSimulateError, setShouldSimulateError] = useState<boolean>(false);
@@ -470,13 +506,13 @@ function TrinityCommandCenter() {
         };
       case 'live-terminal':
         return {
-          title: 'Live Terminal & Injection',
-          subtitle: 'Surgical diff runner, backup verifier & audit logs'
+          title: 'Live Terminal & Stream',
+          subtitle: 'Real-time execution stream, XAUUSD chart & PM2 cluster logs'
         };
       case 'system-health':
         return {
           title: 'System Health & Sentinels',
-          subtitle: 'Thread monitoring, circuit breakers & Vibe Coding protocol'
+          subtitle: 'Thread monitoring, circuit breakers & risk sentinels'
         };
       case 'performance':
         return {
@@ -599,12 +635,12 @@ function TrinityCommandCenter() {
                     className="bg-[#1F2833]/80 backdrop-blur-md p-4 rounded-xl border border-slate-700/60 shadow-lg"
                   >
                     <div className="flex items-center justify-between text-[#94A3B8] mb-2">
-                      <span className="text-xs uppercase tracking-wider font-mono">Vibe Coding Safety</span>
-                      <Lock className="w-4 h-4 text-[#66FCF1]" />
+                      <span className="text-xs uppercase tracking-wider font-mono">Execution Latency</span>
+                      <Zap className="w-4 h-4 text-[#66FCF1]" />
                     </div>
-                    <div className="text-2xl font-bold font-mono text-[#E2E8F0]">100% Enforced</div>
-                    <div className="mt-1 text-xs text-[#66FCF1]/90 flex items-center gap-1 font-mono">
-                      <span>Read-Only • Backup .bak • Surgical diff</span>
+                    <div className="text-2xl font-bold font-mono text-[#66FCF1]">&lt; 15ms</div>
+                    <div className="mt-1 text-xs text-[#10B981] flex items-center gap-1 font-mono">
+                      <span>Direct FIX API Connection (Frankfurt LD4)</span>
                     </div>
                   </motion.div>
                 </motion.div>
@@ -1113,79 +1149,8 @@ function TrinityCommandCenter() {
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-6"
             >
-              {/* 1. Live Quant Terminal (pm2 logs stream simulator) */}
+              {/* 1. Live Quant Terminal (pm2 logs stream simulator with TradingView integration) */}
               <LiveTerminal />
-
-              {/* 2. Surgical Injection & Verification Console */}
-              <div className="bg-[#1F2833]/80 backdrop-blur-md rounded-xl border border-slate-700/60 p-6 shadow-xl">
-                <div className="flex items-center gap-3 pb-4 border-b border-slate-700/60">
-                  <div className="p-2.5 rounded-lg bg-[#66FCF1]/10 border border-[#66FCF1]/30 text-[#66FCF1]">
-                    <Terminal className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-[#E2E8F0]">
-                      Surgical Injection & Verification Console
-                    </h2>
-                    <p className="text-xs text-[#94A3B8]">
-                      Testează și inspectează fluxul standard de Vibe Coding pentru scripturile Trinity Fund.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                  <div>
-                    <label className="block text-xs font-mono uppercase tracking-wider text-[#94A3B8] mb-1.5">
-                      Target File (Relativ la Trinity Fund root)
-                    </label>
-                    <input
-                      type="text"
-                      value={testCmd}
-                      onChange={(e) => setTestCmd(e.target.value)}
-                      className="w-full bg-[#121822] border border-slate-700/70 rounded-lg px-3 py-2 text-xs font-mono text-[#66FCF1] focus:outline-none focus:border-[#66FCF1]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-mono uppercase tracking-wider text-[#94A3B8] mb-1.5">
-                      Surgical Marker / Parameter Anchor
-                    </label>
-                    <input
-                      type="text"
-                      value={surgicalMarker}
-                      onChange={(e) => setSurgicalMarker(e.target.value)}
-                      className="w-full bg-[#121822] border border-slate-700/70 rounded-lg px-3 py-2 text-xs font-mono text-[#66FCF1] focus:outline-none focus:border-[#66FCF1]"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-6 space-y-3">
-                  <div className="text-xs font-mono uppercase tracking-wider text-[#94A3B8]">
-                    Standard Vibe Coding Protocol Sequence Generated:
-                  </div>
-
-                  <div className="bg-[#0B0C10] p-4 rounded-lg border border-slate-800 font-mono text-xs text-[#E2E8F0] space-y-3">
-                    <div className="text-slate-500"># 1. READ-ONLY FIRST: Verificăm contextul și numărul de linii</div>
-                    <div className="text-[#10B981] bg-[#121822] p-2 rounded border border-slate-700/60">
-                      grep -n -C 5 "{surgicalMarker}" /root/trinity-fund/{testCmd}
-                    </div>
-
-                    <div className="text-slate-500"># 2. BACKUP AUTOMAT: Creăm copie de siguranță .bak</div>
-                    <div className="text-[#F59E0B] bg-[#121822] p-2 rounded border border-slate-700/60">
-                      cp /root/trinity-fund/{testCmd} /root/trinity-fund/{testCmd}.bak
-                    </div>
-
-                    <div className="text-slate-500"># 3. INJECȚIE CHIRURGICALĂ: Modificăm strict parametrul țintă</div>
-                    <div className="text-[#66FCF1] bg-[#121822] p-2 rounded border border-slate-700/60">
-                      python3 -c "import re; f='/root/trinity-fund/{testCmd}'; content=open(f).read(); ..."
-                    </div>
-
-                    <div className="text-slate-500"># 4. VERIFICARE POST-INJECȚIE: Validare sintactică & grep</div>
-                    <div className="text-[#E2E8F0] bg-[#121822] p-2 rounded border border-slate-700/60">
-                      python3 -m py_compile /root/trinity-fund/{testCmd} && grep -n "{surgicalMarker}" /root/trinity-fund/{testCmd}
-                    </div>
-                  </div>
-                </div>
-              </div>
             </motion.div>
           )}
 
@@ -1201,88 +1166,6 @@ function TrinityCommandCenter() {
             >
               {/* Comprehensive System Health & cTrader Topology Solution */}
               <SystemHealth onRefresh={handleSyncData} isLoading={isLoadingData} />
-
-              {/* Vibe Coding 5 Rules Constitution */}
-              <div className="bg-[#1F2833]/80 backdrop-blur-md rounded-xl border border-slate-700/60 p-6 shadow-xl">
-                <div className="flex items-center gap-3 pb-4 border-b border-slate-700/60">
-                  <div className="p-2.5 rounded-lg bg-[#66FCF1]/10 border border-[#66FCF1]/30 text-[#66FCF1]">
-                    <Lock className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-[#E2E8F0]">
-                      Protocolul Oficial de Vibe Coding – Trinity Fund (Secțiunea 5)
-                    </h2>
-                    <p className="text-xs text-[#94A3B8]">
-                      Reguli obligatorii pentru fiecare modificare de cod, injecție de parametri sau refactorizare.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                  <div className="p-4 rounded-lg bg-[#121822]/90 border border-slate-700/50 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-mono font-bold text-[#66FCF1] uppercase">Regula 1</span>
-                        <Eye className="w-4 h-4 text-[#94A3B8]" />
-                      </div>
-                      <h3 className="text-sm font-bold text-[#E2E8F0] mb-1">Read-Only First</h3>
-                      <p className="text-xs text-[#94A3B8] leading-relaxed">
-                        Mereu verifică structura și conținutul exact al fișierului înainte de a propune sau efectua modificări.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-lg bg-[#121822]/90 border border-slate-700/50 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-mono font-bold text-[#66FCF1] uppercase">Regula 2</span>
-                        <Cpu className="w-4 h-4 text-[#94A3B8]" />
-                      </div>
-                      <h3 className="text-sm font-bold text-[#E2E8F0] mb-1">Injecție Chirurgicală</h3>
-                      <p className="text-xs text-[#94A3B8] leading-relaxed">
-                        Folosește markeri exacți pentru a înlocui doar liniile sau componentele vizate, fără a rescrie strategii intacte.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-lg bg-[#121822]/90 border border-slate-700/50 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-mono font-bold text-[#F59E0B] uppercase">Regula 3</span>
-                        <Database className="w-4 h-4 text-[#94A3B8]" />
-                      </div>
-                      <h3 className="text-sm font-bold text-[#E2E8F0] mb-1">Backup Automat</h3>
-                      <p className="text-xs text-[#94A3B8] leading-relaxed">
-                        Orice script creează automat un fișier <code className="text-[#F59E0B]">.bak</code> înainte de a scrie modificarea pe disc.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-lg bg-[#121822]/90 border border-slate-700/50 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-mono font-bold text-[#EF4444] uppercase">Regula 4</span>
-                        <Lock className="w-4 h-4 text-[#94A3B8]" />
-                      </div>
-                      <h3 className="text-sm font-bold text-[#E2E8F0] mb-1">Fără Expunere (Zero Secret Exposure)</h3>
-                      <p className="text-xs text-[#94A3B8] leading-relaxed">
-                        Nu genera sau imprima niciodată fișierele <code className="text-[#EF4444]">.env</code>, bazele <code className="text-[#EF4444]">.sqlite</code> sau cheile API.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-lg bg-[#121822]/90 border border-slate-700/50 mt-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-mono font-bold text-[#10B981] uppercase">Regula 5</span>
-                    <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-                  </div>
-                  <h3 className="text-sm font-bold text-[#E2E8F0] mb-1">Verificare Post-Injecție</h3>
-                  <p className="text-xs text-[#94A3B8] leading-relaxed">
-                    După fiecare modificare, oferă o comandă de verificare (de ex: <code className="text-[#66FCF1] font-mono">python3 -m py_compile target.py</code> sau <code className="text-[#66FCF1] font-mono">pm2 logs --lines 20</code>).
-                  </p>
-                </div>
-              </div>
 
               {/* Circuit Breaker & Error Boundary Guard Card */}
               <div className="bg-[#1F2833]/80 backdrop-blur-md rounded-xl border border-[#F59E0B]/30 p-6 shadow-xl relative overflow-hidden">

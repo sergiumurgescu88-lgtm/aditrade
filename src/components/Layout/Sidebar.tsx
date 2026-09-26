@@ -45,8 +45,8 @@ const NAV_ITEMS: NavItem[] = [
     id: 'live-terminal',
     label: 'Live Terminal',
     icon: Terminal,
-    badge: 'V5 VIBE',
-    description: 'Surgical injection console'
+    badge: 'LIVE STREAM',
+    description: 'Real-time FIX & PM2 logs'
   },
   {
     id: 'system-health',

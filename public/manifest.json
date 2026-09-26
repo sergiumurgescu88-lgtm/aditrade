@@ -1,0 +1,26 @@
+{
+  "short_name": "TrinityFund",
+  "name": "Trinity Fund | Institutional Algorithmic Trading",
+  "description": "10 Autonomous Bots. 80% Win Rate. Real-time XAUUSD Execution. The future of algorithmic trading.",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "/#/",
+  "scope": "/",
+  "background_color": "#0B0C10",
+  "theme_color": "#0B0C10",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "business"]
+}

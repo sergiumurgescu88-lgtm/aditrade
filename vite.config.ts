@@ -86,6 +86,10 @@ function pythonBackendGatewayPlugin(): Plugin {
 
 export default defineConfig(() => {
   return {
+    base: './',
+    build: {
+      outDir: 'dist',
+    },
     plugins: [react(), tailwindcss(), pythonBackendGatewayPlugin()],
     resolve: {
       alias: {
