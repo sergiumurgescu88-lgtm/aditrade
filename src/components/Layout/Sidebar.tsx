@@ -4,13 +4,16 @@ import {
   Cpu, 
   Terminal, 
   HeartPulse, 
+  TrendingUp,
+  Zap,
+  Menu,
   X,
   Server,
   Layers,
   ChevronRight
 } from 'lucide-react';
 
-export type NavViewId = 'command-center' | 'bot-matrix' | 'live-terminal' | 'system-health';
+export type NavViewId = 'command-center' | 'bot-matrix' | 'live-terminal' | 'system-health' | 'performance' | 'pricing';
 
 interface NavItem {
   id: NavViewId;
@@ -46,9 +49,35 @@ const NAV_ITEMS: NavItem[] = [
     id: 'system-health',
     label: 'System Health',
     icon: HeartPulse,
-    badge: '99.9%',
-    description: 'Sentinels & thread status'
+    badge: '5/5 FIX',
+    description: 'cTrader topology & sentinels'
+  },
+  {
+    id: 'performance',
+    label: 'Performance',
+    icon: TrendingUp,
+    badge: '80.2% WR',
+    description: 'Audited returns & track record'
+  },
+  {
+    id: 'pricing',
+    label: 'Pricing & Access',
+    icon: Zap,
+    badge: 'VIP TIERS',
+    description: 'Copy trading & VIP licenses'
   }
+];
+
+// 4 essential quick-access items for mobile bottom bar
+const MOBILE_ESSENTIAL_ITEMS: {
+  id: NavViewId;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
+  { id: 'command-center', label: 'Overview', icon: Activity },
+  { id: 'bot-matrix', label: 'Matrix', icon: Cpu },
+  { id: 'live-terminal', label: 'Terminal', icon: Terminal },
+  { id: 'pricing', label: 'Pricing', icon: Zap },
 ];
 
 interface SidebarProps {
@@ -56,13 +85,15 @@ interface SidebarProps {
   onSelectView: (view: NavViewId) => void;
   mobileOpen: boolean;
   onCloseMobile: () => void;
+  onOpenMobile?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentView,
   onSelectView,
   mobileOpen,
-  onCloseMobile
+  onCloseMobile,
+  onOpenMobile
 }) => {
   return (
     <>
@@ -204,7 +235,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         aria-label="Mobile Bottom Navigation" 
         className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0B0C10]/95 backdrop-blur-md border-t border-slate-800/90 shadow-2xl px-2 py-1 flex items-center justify-around"
       >
-        {NAV_ITEMS.map((item) => {
+        {MOBILE_ESSENTIAL_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = currentView === item.id;
 
@@ -228,11 +259,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               </div>
               <span className={`text-[10px] font-mono leading-none tracking-tight ${isActive ? 'font-bold text-[#66FCF1]' : 'font-medium'}`}>
-                {item.label === 'Command Center' ? 'Overview' : item.label === 'Bot Matrix' ? 'Matrix' : item.label === 'Live Terminal' ? 'Terminal' : 'Topology'}
+                {item.label}
               </span>
             </button>
           );
         })}
+
+        {/* 5th Item: 'More' / Hamburger Drawer Trigger for Topology & Performance */}
+        <button
+          onClick={() => {
+            if (onOpenMobile) {
+              onOpenMobile();
+            }
+          }}
+          className={`flex-1 min-h-[48px] py-1 px-1 flex flex-col items-center justify-center gap-1 rounded-lg transition-all duration-200 select-none ${
+            (currentView === 'system-health' || currentView === 'performance')
+              ? 'text-[#66FCF1] bg-[#1F2833]/60'
+              : 'text-slate-400 hover:text-slate-200 active:bg-slate-800/40'
+          }`}
+          aria-label="Open More Fleet Navigation Menu"
+        >
+          <div className="relative">
+            <Menu className="w-5 h-5" />
+            {(currentView === 'system-health' || currentView === 'performance') && (
+              <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[#66FCF1] animate-pulse" />
+            )}
+          </div>
+          <span className={`text-[10px] font-mono leading-none tracking-tight ${(currentView === 'system-health' || currentView === 'performance') ? 'font-bold text-[#66FCF1]' : 'font-medium'}`}>
+            More
+          </span>
+        </button>
       </nav>
     </>
   );

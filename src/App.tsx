@@ -33,6 +33,8 @@ import { Header } from './components/Layout/Header.tsx';
 import { BotMatrix } from './components/Dashboard/BotMatrix.tsx';
 import { LiveTerminal } from './components/Dashboard/LiveTerminal.tsx';
 import { SystemHealth } from './components/Dashboard/SystemHealth.tsx';
+import { Performance } from './components/Dashboard/Performance.tsx';
+import { Pricing } from './components/Dashboard/Pricing.tsx';
 
 interface BotSpec {
   id: string;
@@ -467,6 +469,16 @@ function TrinityCommandCenter() {
           title: 'System Health & Sentinels',
           subtitle: 'Thread monitoring, circuit breakers & Vibe Coding protocol'
         };
+      case 'performance':
+        return {
+          title: 'Institutional Performance',
+          subtitle: 'Audited returns, Sharpe 7.12 & real-time capital equity curve'
+        };
+      case 'pricing':
+        return {
+          title: 'Pricing & VIP Access',
+          subtitle: 'Institutional copy trading, VIP signals & proprietary licenses'
+        };
       default:
         return { title: 'Trinity Fund', subtitle: '' };
     }
@@ -486,6 +498,7 @@ function TrinityCommandCenter() {
         onSelectView={setCurrentView}
         mobileOpen={mobileMenuOpen}
         onCloseMobile={() => setMobileMenuOpen(false)}
+        onOpenMobile={() => setMobileMenuOpen(true)}
       />
 
       {/* 2. Main Layout Column */}
@@ -1296,6 +1309,34 @@ function TrinityCommandCenter() {
                   </div>
                 </div>
               </div>
+            </motion.div>
+          )}
+
+          {/* VIEW 5: PERFORMANCE & TRACK RECORD */}
+          {currentView === 'performance' && (
+            <motion.div
+              key="performance"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="space-y-6"
+            >
+              <Performance />
+            </motion.div>
+          )}
+
+          {/* VIEW 6: PRICING & SALES FUNNEL */}
+          {currentView === 'pricing' && (
+            <motion.div
+              key="pricing"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="space-y-6"
+            >
+              <Pricing />
             </motion.div>
           )}
           </AnimatePresence>
