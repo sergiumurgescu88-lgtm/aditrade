@@ -12,6 +12,7 @@ import {
   Filter
 } from 'lucide-react';
 import { useLiveLogs } from '../../hooks/useLiveLogs';
+import { TradingViewChart } from './TradingViewChart';
 
 export const LiveTerminal: React.FC = () => {
   const { logs, isConnected, error, isPaused, pause, resume, clearLogs } = useLiveLogs();
@@ -70,12 +71,21 @@ export const LiveTerminal: React.FC = () => {
   });
 
   return (
-    <div className={`flex flex-col transition-all duration-300 ${
-      isFullscreen 
-        ? 'fixed inset-4 z-50 bg-[#000000] border border-[#66FCF1]/40 rounded-xl shadow-2xl p-4' 
-        : 'bg-[#000000] rounded-xl border border-slate-800 shadow-2xl overflow-hidden'
-    }`}>
-      {/* Terminal Titlebar */}
+    <div className="space-y-4">
+      {/* Top: Live Institutional TradingView Chart for XAUUSD Context */}
+      {!isFullscreen && (
+        <div className="border-b border-[#66FCF1]/20 pb-4">
+          <TradingViewChart height="h-[280px] sm:h-[350px] lg:h-[450px]" />
+        </div>
+      )}
+
+      {/* Bottom: PM2 Live Log Stream Console */}
+      <div className={`flex flex-col transition-all duration-300 ${
+        isFullscreen 
+          ? 'fixed inset-4 z-50 bg-[#000000] border border-[#66FCF1]/40 rounded-xl shadow-2xl p-4' 
+          : 'bg-[#000000] rounded-xl border border-slate-800 shadow-2xl overflow-hidden'
+      }`}>
+        {/* Terminal Titlebar */}
       <div className="h-11 bg-[#090b10] border-b border-slate-800 px-4 flex items-center justify-between select-none">
         {/* Left: Window Controls & Title */}
         <div className="flex items-center gap-3">
@@ -242,5 +252,6 @@ export const LiveTerminal: React.FC = () => {
         </div>
       </div>
     </div>
+  </div>
   );
 };

@@ -17,8 +17,10 @@ import {
   HardDrive,
   Radio,
   FileCheck2,
-  Database
+  Database,
+  Globe
 } from 'lucide-react';
+import { EcosystemTopology } from './EcosystemTopology';
 
 interface SystemHealthProps {
   onRefresh?: () => void;
@@ -26,7 +28,7 @@ interface SystemHealthProps {
 }
 
 export const SystemHealth: React.FC<SystemHealthProps> = ({ onRefresh, isLoading = false }) => {
-  const [activeTab, setActiveTab] = useState<'topology' | 'sentinels' | 'hardware'>('topology');
+  const [activeTab, setActiveTab] = useState<'topology' | 'ecosystem' | 'sentinels' | 'hardware'>('topology');
 
   return (
     <div className="space-y-6">
@@ -80,6 +82,18 @@ export const SystemHealth: React.FC<SystemHealthProps> = ({ onRefresh, isLoading
           >
             <GitBranch className="w-4 h-4" />
             <span>cTrader 5-Slot Solution Diagram</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('ecosystem')}
+            className={`min-h-[44px] px-4 py-2 rounded-lg text-xs font-mono font-medium flex items-center gap-2 transition-all duration-300 border ${
+              activeTab === 'ecosystem'
+                ? 'bg-[#66FCF1]/15 text-[#66FCF1] border-[#66FCF1]/40 shadow-sm shadow-[#66FCF1]/10'
+                : 'bg-[#121822] text-[#94A3B8] border-slate-700/60 hover:text-white hover:border-slate-600'
+            }`}
+          >
+            <Globe className="w-4 h-4 text-[#66FCF1]" />
+            <span>🌐 Trinity Network Topology & VPS</span>
           </button>
 
           <button
@@ -274,6 +288,17 @@ export const SystemHealth: React.FC<SystemHealthProps> = ({ onRefresh, isLoading
               </p>
             </div>
           </div>
+        </motion.div>
+      )}
+
+      {/* TAB: TRINITY NETWORK TOPOLOGY & VPS SUBDOMAINS */}
+      {activeTab === 'ecosystem' && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <EcosystemTopology />
         </motion.div>
       )}
 

@@ -10,7 +10,10 @@ import {
   LogIn,
   LogOut,
   User as UserIcon,
-  Crown
+  Crown,
+  BookOpen,
+  BarChart3,
+  ExternalLink
 } from 'lucide-react';
 import { MockUser } from '../../hooks/useAuth';
 import { UserProfile } from '../../hooks/useUserProfile';
@@ -92,6 +95,36 @@ export const Header: React.FC<HeaderProps> = ({
           <Clock className="w-3.5 h-3.5 text-[#66FCF1]" />
           <span className="tabular-nums tracking-wide">{utcTime || 'Syncing UTC...'}</span>
         </div>
+
+        {/* Quick Access: Documentation Hub */}
+        <a
+          href="https://doc.g4trade.online"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="min-h-[44px] min-w-[44px] p-2 hidden sm:flex items-center justify-center rounded-lg bg-[#1F2833]/70 hover:bg-[#1F2833] border border-slate-700/60 text-[#94A3B8] hover:text-[#66FCF1] transition-all duration-300 relative group"
+          title="Full Documentation"
+          aria-label="Full Documentation"
+        >
+          <BookOpen className="w-4 h-4" />
+          <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 hidden group-hover:block z-50 whitespace-nowrap rounded bg-[#0B0C10] px-2 py-0.5 text-[10px] font-mono text-[#66FCF1] border border-slate-700 shadow-lg">
+            Full Documentation
+          </span>
+        </a>
+
+        {/* Quick Access: Live Statistics */}
+        <a
+          href="https://stats.g4trade.online"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="min-h-[44px] min-w-[44px] p-2 hidden sm:flex items-center justify-center rounded-lg bg-[#1F2833]/70 hover:bg-[#1F2833] border border-slate-700/60 text-[#94A3B8] hover:text-[#66FCF1] transition-all duration-300 relative group"
+          title="Live Statistics"
+          aria-label="Live Statistics"
+        >
+          <BarChart3 className="w-4 h-4" />
+          <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 hidden group-hover:block z-50 whitespace-nowrap rounded bg-[#0B0C10] px-2 py-0.5 text-[10px] font-mono text-[#66FCF1] border border-slate-700 shadow-lg">
+            Live Statistics
+          </span>
+        </a>
 
         {/* Quick Refresh Button */}
         {onQuickRefresh && (

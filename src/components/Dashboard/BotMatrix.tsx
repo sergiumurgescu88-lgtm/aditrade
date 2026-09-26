@@ -31,6 +31,19 @@ export interface BotData {
   timeframe: string;
 }
 
+export const BOT_DASHBOARD_URLS: Record<string, string> = {
+  alpha: 'https://alpha.g4trade.online',
+  beta: 'https://beta.g4trade.online',
+  gamma: 'https://gamma.g4trade.online',
+  epsilon: 'https://epsilon.g4trade.online',
+  sergiu: 'https://sergiu.g4trade.online',
+  zeus: 'https://g4trade.online',
+  ares: 'https://g4trade.online',
+  chronos: 'https://g4trade.online',
+  hades: 'https://g4trade.online',
+  hermes: 'https://g4trade.online',
+};
+
 const BOTS_DATA: BotData[] = [
   {
     id: 'alpha',
@@ -459,15 +472,17 @@ export const BotMatrix: React.FC<BotMatrixProps> = ({ onSelectBot, isLoading = f
                 </div>
               </div>
 
-              {/* 5. Footer: Button Accesează Dashboard with Outline Style */}
+              {/* 5. Footer: Button Accesează Dashboard with External Subdomain Link */}
               <div className="pt-3 border-t border-slate-700/60 mt-2">
-                <button
-                  onClick={() => onSelectBot ? onSelectBot(bot.id) : null}
-                  className="w-full min-h-[44px] py-2.5 px-3 rounded-lg border border-[#66FCF1]/40 hover:border-[#66FCF1] bg-transparent hover:bg-[#66FCF1]/10 text-[#66FCF1] text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-all duration-300 shadow-sm hover:shadow-[0_0_12px_rgba(102,252,241,0.18)]"
+                <a
+                  href={BOT_DASHBOARD_URLS[bot.id] || 'https://g4trade.online'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full min-h-[44px] py-2.5 px-3 rounded-lg border border-[#66FCF1]/40 hover:border-[#66FCF1] bg-transparent hover:bg-[#66FCF1]/10 text-[#66FCF1] text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-all duration-300 shadow-sm hover:shadow-[0_0_12px_rgba(102,252,241,0.18)] group/btn"
                 >
                   <span>Accesează Dashboard</span>
-                  <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </button>
+                  <ExternalLink className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
+                </a>
               </div>
             </motion.div>
           );

@@ -40,6 +40,7 @@ import { useUserProfile } from './hooks/useUserProfile.ts';
 import { AuthGateOverlay } from './components/Common/AuthGateOverlay.tsx';
 import { AIChatbot } from './components/Common/AIChatbot.tsx';
 import { MacroNewsFeed } from './components/Dashboard/MacroNewsFeed.tsx';
+import { TradingViewChart } from './components/Dashboard/TradingViewChart.tsx';
 
 interface BotSpec {
   id: string;
@@ -607,6 +608,11 @@ function TrinityCommandCenter() {
                     </div>
                   </motion.div>
                 </motion.div>
+
+                {/* Live Institutional TradingView Real-Time Chart (XAUUSD) */}
+                <div className="my-6 sm:my-8 w-full">
+                  <TradingViewChart />
+                </div>
 
               {/* Heartbeat Status Section */}
               <div className="bg-[#1F2833]/80 backdrop-blur-md rounded-xl border border-slate-700/60 p-5 shadow-xl relative overflow-hidden">

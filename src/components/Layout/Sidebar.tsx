@@ -10,7 +10,10 @@ import {
   X,
   Server,
   Layers,
-  ChevronRight
+  ChevronRight,
+  BookOpen,
+  BarChart3,
+  ExternalLink
 } from 'lucide-react';
 
 export type NavViewId = 'command-center' | 'bot-matrix' | 'live-terminal' | 'system-health' | 'performance' | 'pricing';
@@ -198,6 +201,41 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </button>
               );
             })}
+          </div>
+
+          {/* Quick External Links: Documentation & Statistics */}
+          <div className="mt-4 pt-4 border-t border-slate-800/80 space-y-1.5">
+            <div className="px-3 text-[10px] font-mono uppercase text-slate-500 tracking-wider">
+              Ecosystem Hubs
+            </div>
+
+            <a
+              href="https://doc.g4trade.online"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full min-h-[38px] px-3 py-2 rounded-lg flex items-center justify-between text-xs font-mono text-slate-400 hover:text-[#66FCF1] hover:bg-[#1F2833]/50 transition-all duration-200 group"
+              title="Full Documentation"
+            >
+              <div className="flex items-center gap-2.5">
+                <BookOpen className="w-4 h-4 text-[#66FCF1]/70 group-hover:text-[#66FCF1]" />
+                <span>Documentation</span>
+              </div>
+              <ExternalLink className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+            </a>
+
+            <a
+              href="https://stats.g4trade.online"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full min-h-[38px] px-3 py-2 rounded-lg flex items-center justify-between text-xs font-mono text-slate-400 hover:text-[#66FCF1] hover:bg-[#1F2833]/50 transition-all duration-200 group"
+              title="Live Statistics"
+            >
+              <div className="flex items-center gap-2.5">
+                <BarChart3 className="w-4 h-4 text-[#66FCF1]/70 group-hover:text-[#66FCF1]" />
+                <span>Live Statistics</span>
+              </div>
+              <ExternalLink className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+            </a>
           </div>
         </div>
 
