@@ -12,6 +12,7 @@ import {
   Lock, 
   ArrowUpRight 
 } from 'lucide-react';
+import { useBotTelemetry } from '../../hooks/useBotTelemetry';
 
 export interface BotData {
   id: string;
@@ -218,6 +219,9 @@ const cardVariants = {
 };
 
 export const BotMatrix: React.FC<BotMatrixProps> = ({ onSelectBot, isLoading = false }) => {
+  const { telemetry, isLoading: telemetryLoading, isConnected } = useBotTelemetry();
+  const effectiveLoading = isLoading || telemetryLoading;
+
   const [expandedBots, setExpandedBots] = useState<Record<string, boolean>>({
     alpha: true // Alpha expanded by default as flagship demonstration
   });
@@ -229,7 +233,7 @@ export const BotMatrix: React.FC<BotMatrixProps> = ({ onSelectBot, isLoading = f
     }));
   };
 
-  if (isLoading) {
+  if (effectiveLoading) {
     return (
       <div className="space-y-4">
         {/* Header Skeleton */}
@@ -303,7 +307,15 @@ export const BotMatrix: React.FC<BotMatrixProps> = ({ onSelectBot, isLoading = f
           </p>
         </div>
 
-        <div className="flex items-center gap-3 text-xs font-mono">
+        <div className="flex items-center gap-2 sm:gap-3 text-xs font-mono flex-wrap">
+          <span className={`text-[10px] px-2 py-0.5 rounded border flex items-center gap-1 ${
+            isConnected 
+              ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/30 font-medium' 
+              : 'bg-slate-800/80 text-slate-400 border-slate-700'
+          }`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-[#10B981] animate-pulse' : 'bg-slate-500'}`} />
+            {isConnected ? 'API LIVE (/api/bots/status)' : 'DEV MODE CACHE'}
+          </span>
           <span className="flex items-center gap-1.5 text-[#10B981]">
             <span className="h-2 w-2 rounded-full bg-[#10B981]" /> 5 Direct
           </span>
@@ -325,6 +337,10 @@ export const BotMatrix: React.FC<BotMatrixProps> = ({ onSelectBot, isLoading = f
       >
         {BOTS_DATA.map((bot) => {
           const isExpanded = !!expandedBots[bot.id];
+          const live = telemetry[bot.id];
+          const currentStatus = live?.status || bot.status;
+          const latency = live?.latency;
+          const memory = live?.memory;
 
           return (
             <motion.div
@@ -352,13 +368,13 @@ export const BotMatrix: React.FC<BotMatrixProps> = ({ onSelectBot, isLoading = f
                   </div>
 
                   <span className={`text-[10px] font-mono px-2 py-0.5 rounded border whitespace-nowrap ${
-                    bot.status === 'LIVE'
+                    currentStatus === 'LIVE'
                       ? 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30 font-semibold shadow-[0_0_8px_rgba(16,185,129,0.15)]'
-                      : bot.status === 'GATEWAY'
+                      : currentStatus === 'GATEWAY'
                       ? 'bg-[#66FCF1]/15 text-[#66FCF1] border-[#66FCF1]/30 font-semibold shadow-[0_0_8px_rgba(102,252,241,0.15)]'
                       : 'bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/30 font-semibold shadow-[0_0_8px_rgba(245,158,11,0.15)]'
                   }`}>
-                    {bot.statusBadge}
+                    {currentStatus === 'LIVE' ? '🟢 LIVE' : currentStatus === 'GATEWAY' ? '🔵 GATEWAY' : '🟡 VETO'}
                   </span>
                 </div>
 
@@ -377,7 +393,7 @@ export const BotMatrix: React.FC<BotMatrixProps> = ({ onSelectBot, isLoading = f
                   <div className="p-1.5 rounded bg-[#1F2833]/50">
                     <span className="text-[10px] text-slate-400 block uppercase">Risc Max</span>
                     <span className={`${
-                      bot.status === 'VETO' ? 'text-[#F59E0B]' : 'text-[#66FCF1]'
+                      currentStatus === 'VETO' ? 'text-[#F59E0B]' : 'text-[#66FCF1]'
                     } font-semibold`}>
                       {bot.riskPct}
                     </span>
@@ -394,20 +410,31 @@ export const BotMatrix: React.FC<BotMatrixProps> = ({ onSelectBot, isLoading = f
                   </div>
                 </div>
 
+                {/* Real-time telemetry strip when available */}
+                {latency !== undefined && (
+                  <div className="flex items-center justify-between text-[10px] font-mono px-2 py-1 mb-3 rounded bg-[#0B0C10]/80 border border-slate-800 text-slate-400">
+                    <span className="flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-[#66FCF1]" />
+                      <span>Telemetry: <strong className="text-[#66FCF1]">{latency}ms</strong></span>
+                    </span>
+                    <span>Mem: {memory}MB</span>
+                  </div>
+                )}
+
                 {/* 4. Expandable Accordion: Detalii Strategii */}
                 <div className="mb-3">
                   <button
                     onClick={() => toggleExpand(bot.id)}
-                    className="w-full py-1.5 px-2.5 rounded-md bg-[#121822]/60 hover:bg-[#121822] border border-slate-700/50 text-xs font-mono text-[#94A3B8] hover:text-[#66FCF1] flex items-center justify-between transition-all duration-300"
+                    className="w-full min-h-[44px] py-2 px-3 rounded-lg bg-[#121822]/60 hover:bg-[#121822] border border-slate-700/50 text-xs font-mono text-[#94A3B8] hover:text-[#66FCF1] flex items-center justify-between transition-all duration-300"
                   >
                     <span className="flex items-center gap-1.5">
                       <span>🔍</span>
                       <span>Detalii Strategie</span>
                     </span>
                     {isExpanded ? (
-                      <ChevronUp className="w-3.5 h-3.5 text-[#66FCF1]" />
+                      <ChevronUp className="w-4 h-4 text-[#66FCF1]" />
                     ) : (
-                      <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                      <ChevronDown className="w-4 h-4 text-slate-400" />
                     )}
                   </button>
 
@@ -436,10 +463,10 @@ export const BotMatrix: React.FC<BotMatrixProps> = ({ onSelectBot, isLoading = f
               <div className="pt-3 border-t border-slate-700/60 mt-2">
                 <button
                   onClick={() => onSelectBot ? onSelectBot(bot.id) : null}
-                  className="w-full py-2 px-3 rounded-lg border border-[#66FCF1]/40 hover:border-[#66FCF1] bg-transparent hover:bg-[#66FCF1]/10 text-[#66FCF1] text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-all duration-300 shadow-sm hover:shadow-[0_0_12px_rgba(102,252,241,0.18)]"
+                  className="w-full min-h-[44px] py-2.5 px-3 rounded-lg border border-[#66FCF1]/40 hover:border-[#66FCF1] bg-transparent hover:bg-[#66FCF1]/10 text-[#66FCF1] text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-all duration-300 shadow-sm hover:shadow-[0_0_12px_rgba(102,252,241,0.18)]"
                 >
                   <span>Accesează Dashboard</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </button>
               </div>
             </motion.div>

@@ -48,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center gap-3">
         <button
           onClick={onToggleMobileMenu}
-          className="lg:hidden p-2 rounded-lg bg-[#1F2833]/80 border border-slate-700/60 text-[#94A3B8] hover:text-[#E2E8F0] hover:bg-[#1F2833] transition-all duration-300"
+          className="lg:hidden min-h-[44px] min-w-[44px] p-2 rounded-lg bg-[#1F2833]/80 border border-slate-700/60 text-[#94A3B8] hover:text-[#E2E8F0] hover:bg-[#1F2833] transition-all duration-300 flex items-center justify-center"
           aria-label="Toggle Navigation Menu"
         >
           <Menu className="w-5 h-5" />
@@ -82,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onQuickRefresh}
             disabled={isRefreshing}
-            className="p-1.5 rounded-lg bg-[#1F2833]/70 hover:bg-[#1F2833] border border-slate-700/60 text-[#94A3B8] hover:text-[#66FCF1] transition-all duration-300 disabled:opacity-50"
+            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-lg bg-[#1F2833]/70 hover:bg-[#1F2833] border border-slate-700/60 text-[#94A3B8] hover:text-[#66FCF1] transition-all duration-300 disabled:opacity-50"
             title="Refresh fleet telemetry"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-[#66FCF1]' : ''}`} />

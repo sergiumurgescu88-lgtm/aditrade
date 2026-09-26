@@ -11,50 +11,10 @@ import {
   Minimize2,
   Filter
 } from 'lucide-react';
-
-interface LogEntry {
-  id: string;
-  rawText: string;
-  timestamp: string;
-  category: 'buy' | 'sell_error' | 'veto_wait' | 'neutral';
-  formattedText: string;
-}
-
-const TEMPLATE_LOGS = [
-  "[alpha-sniper] INFO - Whale detectat pe XAUUSD M15: 1.84x (min 1.80x), ADX=37.2, Scor=88.5",
-  "[alpha-sniper] INFO - BUY 0.25 lot XAUUSD @ 2654.82 | TP: 2662.50 | SL: 2650.10",
-  "[alpha-sniper] INFO - ADX insuficient: M15=49.4 M30=18.0 (min 35.0)",
-  "[beta-trend] INFO - Istoric M30: 500 bare încărcate din cTrader Open API",
-  "[beta-trend] INFO - Așteptăm pullback la EMA20 (2652.10 vs current 2654.30)",
-  "[beta-trend] INFO - Whale trend volume 1.55x confirmat pe pullback EMA50, semnal valid",
-  "[beta-trend] INFO - BUY 0.35 lot XAUUSD @ 2653.40 (Trailing Stop activat)",
-  "[gamma-scalp] INFO - Whale scalper M1 ratio 1.34x depășit, TP țintă +5 pips",
-  "[gamma-scalp] INFO - BUY 0.15 lot XAUUSD @ 2654.10 scalp execution",
-  "[gamma-scalp] INFO - Take profit atins: +4.8 pips ($72.00 realizat)",
-  "[epsilon-liquidity] INFO - Sweep detectat la 2648.50, volum 1.45x, testare absorbție",
-  "[epsilon-liquidity] INFO - BUY 0.30 lot XAUUSD pe liquidity sweep reversal",
-  "[sergiu-flagship] INFO - Așteptăm deschiderea London Fixing pentru validare ORB",
-  "[sergiu-flagship] INFO - Whale session flow > 1.62x la deschiderea NY, ORB 15m breakout confirmat",
-  "[sergiu-flagship] INFO - BUY 0.75 lot XAUUSD @ 2656.20 (Flagship Core Order)",
-  "[chronos-sentinel] INFO - VETO activ: 22:00 RO Rollover spread protection window armat",
-  "[chronos-sentinel] INFO - LBMA Fixing window monitor: spread normal 1.8 pips, VETO standby",
-  "[hades-sentinel] INFO - Verificare COT: Managed Money net long 62.4% (sub pragul de VETO 90%)",
-  "[hades-sentinel] INFO - Așteptăm raport CFTC COT actualizat pentru vineri seara",
-  "[hermes-gateway] INFO - Istoric US Core CPI T+15m: Z-Score = +0.42 (filtrare noise completă)",
-  "[hermes-gateway] INFO - BUY semnal Z-Score deviation favorabil aurului după stabilizare",
-  "[ares-shock] INFO - M15 ATR actual: 1.15x (Ares prag shock 2.5x neîndeplinit)",
-  "[ares-shock] INFO - Alertă volatilitate: spike 2.65x ATR neprogramat detectat",
-  "[ares-shock] INFO - SELL hedging rapid 0.20 lot contra impuls epuizat",
-  "[zeus-macro] INFO - DXY 100.82 (-0.35%), TIPS yield 1.98%, corelație favorabilă gold",
-  "[gateway_service] WARNING - Eroare temporară handshake socket cTrader FIX, reconnecting in 200ms",
-  "[gateway_service] INFO - cTrader FIX session RESTORED (Ping: 12.4ms)",
-  "[alpha-sniper] INFO - SELL anulat: semnal opus trendului macro D1",
-  "[next-gen/shared] INFO - Verificare context_db: 10/10 boți sincronizați pe PM2"
-];
+import { useLiveLogs } from '../../hooks/useLiveLogs';
 
 export const LiveTerminal: React.FC = () => {
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const { logs, isConnected, error, isPaused, pause, resume, clearLogs } = useLiveLogs();
   const [filterType, setFilterType] = useState<'all' | 'buy' | 'sell_error' | 'veto'>('all');
   const [autoScroll, setAutoScroll] = useState<boolean>(true);
   const [copied, setCopied] = useState<boolean>(false);
@@ -62,105 +22,6 @@ export const LiveTerminal: React.FC = () => {
 
   const terminalRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef<boolean>(false);
-
-  // Helper to format timestamps like Python logging: 2026-09-25 18:02:16,637
-  const getLogTimestamp = () => {
-    const now = new Date();
-    const date = now.toISOString().split('T')[0];
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    const ms = String(now.getMilliseconds()).padStart(3, '0');
-    return `${date} ${hours}:${minutes}:${seconds},${ms}`;
-  };
-
-  // Helper for syntax categorization
-  const categorizeLog = (text: string): { category: LogEntry['category']; formattedText: string } => {
-    if (text.includes("Whale") || text.includes("BUY")) {
-      return {
-        category: 'buy',
-        formattedText: text.startsWith('✅') ? text : `✅ ${text}`
-      };
-    }
-    if (text.includes("SELL") || text.includes("Eroare")) {
-      return {
-        category: 'sell_error',
-        formattedText: text.startsWith('❌') ? text : `❌ ${text}`
-      };
-    }
-    if (text.includes("VETO") || text.includes("Așteptăm")) {
-      return {
-        category: 'veto_wait',
-        formattedText: text.startsWith('⏳') ? text : `⏳ ${text}`
-      };
-    }
-    return {
-      category: 'neutral',
-      formattedText: text
-    };
-  };
-
-  // Initial seed of logs
-  useEffect(() => {
-    const initialSeed: LogEntry[] = [
-      categorizeLog("[trinity-init] 2026-09-25 18:00:01,102 - INFO - Trinity Fund Quant Engine PM2 cluster boot"),
-      categorizeLog("[trinity-init] 2026-09-25 18:00:01,894 - INFO - cTrader Open API Protocol v2 connection established"),
-      categorizeLog("[chronos-sentinel] 2026-09-25 18:00:02,410 - INFO - Chronos Time Guardian initialized (VETO window armed)"),
-      categorizeLog("[alpha-sniper] 2026-09-25 18:00:03,115 - INFO - Istoric M30: 500 bare încărcate din cTrader Open API"),
-      categorizeLog("[beta-trend] 2026-09-25 18:00:03,991 - INFO - Așteptăm pullback la EMA20 (2652.10 vs current 2654.30)"),
-      categorizeLog("[alpha-sniper] 2026-09-25 18:00:04,502 - INFO - Whale detectat pe XAUUSD M15: 1.84x (min 1.80x), ADX=37.2, Scor=88.5"),
-      categorizeLog("[alpha-sniper] 2026-09-25 18:00:05,210 - INFO - BUY 0.25 lot XAUUSD @ 2654.82 | TP: 2662.50 | SL: 2650.10"),
-    ].map((item, idx) => ({
-      id: `seed-${idx}`,
-      rawText: item.formattedText,
-      timestamp: getLogTimestamp(),
-      category: item.category,
-      formattedText: item.formattedText
-    }));
-
-    setLogs(initialSeed);
-  }, []);
-
-  // Interval simulator: generates new log every 1.5 - 3.0 seconds
-  useEffect(() => {
-    if (isPaused) return;
-
-    let timeoutId: NodeJS.Timeout;
-
-    const scheduleNextLog = () => {
-      const randomInterval = Math.floor(Math.random() * 1500) + 1500; // 1500ms to 3000ms
-
-      timeoutId = setTimeout(() => {
-        const randomTemplate = TEMPLATE_LOGS[Math.floor(Math.random() * TEMPLATE_LOGS.length)];
-        const timestamp = getLogTimestamp();
-        const fullMessage = `${timestamp} - ${randomTemplate}`;
-        const { category, formattedText } = categorizeLog(fullMessage);
-
-        const newEntry: LogEntry = {
-          id: `${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-          rawText: fullMessage,
-          timestamp,
-          category,
-          formattedText
-        };
-
-        setLogs(prev => {
-          // Limit to last 50 lines strictly
-          const updated = [...prev, newEntry];
-          if (updated.length > 50) {
-            return updated.slice(updated.length - 50);
-          }
-          return updated;
-        });
-
-        scheduleNextLog();
-      }, randomInterval);
-    };
-
-    scheduleNextLog();
-
-    return () => clearTimeout(timeoutId);
-  }, [isPaused]);
 
   // Handle auto-scroll logic
   useEffect(() => {
@@ -190,10 +51,6 @@ export const LiveTerminal: React.FC = () => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  };
-
-  const clearLogs = () => {
-    setLogs([]);
   };
 
   const copyTerminalOutput = () => {
@@ -243,15 +100,15 @@ export const LiveTerminal: React.FC = () => {
         <div className="flex items-center gap-2">
           {/* Stream Status indicator */}
           <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono border border-slate-800 bg-[#0B0C10]">
-            <span className={`h-1.5 w-1.5 rounded-full ${isPaused ? 'bg-[#F59E0B]' : 'bg-[#10B981] animate-ping'}`} />
-            <span className={isPaused ? 'text-[#F59E0B]' : 'text-[#10B981]'}>
-              {isPaused ? 'STREAM PAUSED' : 'LIVE TAIL'}
+            <span className={`h-1.5 w-1.5 rounded-full ${isPaused ? 'bg-[#F59E0B]' : isConnected ? 'bg-[#10B981] animate-ping' : 'bg-[#F59E0B] animate-pulse'}`} />
+            <span className={isPaused ? 'text-[#F59E0B]' : isConnected ? 'text-[#10B981]' : 'text-[#F59E0B]'}>
+              {isPaused ? 'STREAM PAUSED' : isConnected ? 'LIVE TAIL (WS ONLINE)' : 'RECONNECTING WS...'}
             </span>
           </div>
 
           {/* Pause / Resume */}
           <button
-            onClick={() => setIsPaused(!isPaused)}
+            onClick={() => isPaused ? resume() : pause()}
             className={`p-1.5 rounded text-xs font-mono transition-colors ${
               isPaused 
                 ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40 hover:bg-[#10B981]/30' 
@@ -304,6 +161,19 @@ export const LiveTerminal: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Reconnection Status Banner when Python Backend is offline or reconnecting */}
+      {!isConnected && (
+        <div className="bg-[#F59E0B]/10 border-b border-[#F59E0B]/30 px-4 py-2 flex items-center justify-between text-xs font-mono text-[#F59E0B]">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-[#F59E0B] animate-ping" />
+            <span>⚠️ Se încearcă reconectarea la fluxul de date al serverului...</span>
+          </div>
+          <span className="text-[10px] text-slate-400 hidden sm:inline">
+            Endpoint: ws://localhost:5000/logs • Fallback Dev Mode Activ
+          </span>
+        </div>
+      )}
 
       {/* Terminal Screen Body */}
       <div className="relative">

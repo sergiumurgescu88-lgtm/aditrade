@@ -198,6 +198,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
       </aside>
+
+      {/* Mobile Bottom Navigation Bar (below md breakpoint) */}
+      <nav 
+        aria-label="Mobile Bottom Navigation" 
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0B0C10]/95 backdrop-blur-md border-t border-slate-800/90 shadow-2xl px-2 py-1 flex items-center justify-around"
+      >
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const isActive = currentView === item.id;
+
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                onSelectView(item.id);
+                onCloseMobile();
+              }}
+              className={`flex-1 min-h-[48px] py-1 px-1 flex flex-col items-center justify-center gap-1 rounded-lg transition-all duration-200 select-none ${
+                isActive
+                  ? 'text-[#66FCF1] bg-[#1F2833]/60'
+                  : 'text-slate-400 hover:text-slate-200 active:bg-slate-800/40'
+              }`}
+            >
+              <div className="relative">
+                <Icon className={`w-5 h-5 ${isActive ? 'text-[#66FCF1]' : 'text-slate-400'}`} />
+                {isActive && (
+                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[#66FCF1] animate-pulse" />
+                )}
+              </div>
+              <span className={`text-[10px] font-mono leading-none tracking-tight ${isActive ? 'font-bold text-[#66FCF1]' : 'font-medium'}`}>
+                {item.label === 'Command Center' ? 'Overview' : item.label === 'Bot Matrix' ? 'Matrix' : item.label === 'Live Terminal' ? 'Terminal' : 'Topology'}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
     </>
   );
 };

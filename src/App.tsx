@@ -23,12 +23,16 @@ import {
   Server,
   Radio,
   FileCode2,
-  HardDrive
+  HardDrive,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { Sidebar, NavViewId } from './components/Layout/Sidebar.tsx';
 import { Header } from './components/Layout/Header.tsx';
 import { BotMatrix } from './components/Dashboard/BotMatrix.tsx';
 import { LiveTerminal } from './components/Dashboard/LiveTerminal.tsx';
+import { SystemHealth } from './components/Dashboard/SystemHealth.tsx';
 
 interface BotSpec {
   id: string;
@@ -333,6 +337,33 @@ function TrinityCommandCenter() {
   const [autoPulse, setAutoPulse] = useState<boolean>(true);
   const [lastPingTimestamp, setLastPingTimestamp] = useState<string>('Live (Auto)');
 
+  type HeartbeatSortKey = 'latency' | 'cpu' | 'name';
+  type HeartbeatSortOrder = 'asc' | 'desc';
+
+  const [heartbeatSortKey, setHeartbeatSortKey] = useState<HeartbeatSortKey>('latency');
+  const [heartbeatSortOrder, setHeartbeatSortOrder] = useState<HeartbeatSortOrder>('asc');
+
+  const handleToggleHeartbeatSort = (key: HeartbeatSortKey) => {
+    if (heartbeatSortKey === key) {
+      setHeartbeatSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setHeartbeatSortKey(key);
+      setHeartbeatSortOrder(key === 'cpu' ? 'desc' : 'asc');
+    }
+  };
+
+  const sortedHeartbeats = [...heartbeats].sort((a, b) => {
+    let diff = 0;
+    if (heartbeatSortKey === 'latency') {
+      diff = a.latencyMs - b.latencyMs;
+    } else if (heartbeatSortKey === 'cpu') {
+      diff = a.cpuPct - b.cpuPct;
+    } else if (heartbeatSortKey === 'name') {
+      diff = a.name.localeCompare(b.name);
+    }
+    return heartbeatSortOrder === 'asc' ? diff : -diff;
+  });
+
   // Initial simulated load: demonstrates elegant skeleton loaders
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -469,7 +500,7 @@ function TrinityCommandCenter() {
         />
 
         {/* View Content Body */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6 pb-24 md:pb-8">
           <AnimatePresence mode="wait">
             {/* VIEW 1: COMMAND CENTER */}
             {currentView === 'command-center' && (
@@ -636,9 +667,77 @@ function TrinityCommandCenter() {
                   </div>
                 </div>
 
+                {/* Sortable Header Bar */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 my-3 p-2.5 rounded-lg bg-[#121822]/95 border border-slate-700/60">
+                  <div className="flex items-center gap-2 text-xs font-mono">
+                    <span className="text-slate-400 font-medium">SORT NODES BY:</span>
+                    <span className="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-[#66FCF1] border border-slate-700">
+                      {heartbeatSortKey === 'latency' ? 'Latency (Round-Trip)' : heartbeatSortKey === 'cpu' ? 'CPU Thread Load' : 'Bot Name (A-Z)'}
+                      {' • '}
+                      {heartbeatSortOrder === 'asc' ? 'Ascending (▲)' : 'Descending (▼)'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <button
+                      onClick={() => handleToggleHeartbeatSort('latency')}
+                      className={`px-2.5 py-1.5 rounded-md text-xs font-mono font-medium flex items-center gap-1.5 transition-all duration-300 border ${
+                        heartbeatSortKey === 'latency'
+                          ? 'bg-[#66FCF1]/15 text-[#66FCF1] border-[#66FCF1]/40 shadow-sm shadow-[#66FCF1]/15'
+                          : 'bg-[#0B0C10] text-[#94A3B8] border-slate-700 hover:text-[#E2E8F0] hover:border-slate-600'
+                      }`}
+                      title="Sort by Round-Trip Ping Latency"
+                    >
+                      <Zap className="w-3.5 h-3.5 text-[#66FCF1]" />
+                      <span>Latency</span>
+                      {heartbeatSortKey === 'latency' ? (
+                        heartbeatSortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-[#66FCF1]" /> : <ArrowDown className="w-3 h-3 text-[#66FCF1]" />
+                      ) : (
+                        <ArrowUpDown className="w-3 h-3 text-slate-500" />
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => handleToggleHeartbeatSort('cpu')}
+                      className={`px-2.5 py-1.5 rounded-md text-xs font-mono font-medium flex items-center gap-1.5 transition-all duration-300 border ${
+                        heartbeatSortKey === 'cpu'
+                          ? 'bg-[#66FCF1]/15 text-[#66FCF1] border-[#66FCF1]/40 shadow-sm shadow-[#66FCF1]/15'
+                          : 'bg-[#0B0C10] text-[#94A3B8] border-slate-700 hover:text-[#E2E8F0] hover:border-slate-600'
+                      }`}
+                      title="Sort by CPU Process Usage"
+                    >
+                      <Cpu className="w-3.5 h-3.5 text-[#66FCF1]" />
+                      <span>CPU Usage</span>
+                      {heartbeatSortKey === 'cpu' ? (
+                        heartbeatSortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-[#66FCF1]" /> : <ArrowDown className="w-3 h-3 text-[#66FCF1]" />
+                      ) : (
+                        <ArrowUpDown className="w-3 h-3 text-slate-500" />
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => handleToggleHeartbeatSort('name')}
+                      className={`px-2.5 py-1.5 rounded-md text-xs font-mono font-medium flex items-center gap-1.5 transition-all duration-300 border ${
+                        heartbeatSortKey === 'name'
+                          ? 'bg-[#66FCF1]/15 text-[#66FCF1] border-[#66FCF1]/40 shadow-sm shadow-[#66FCF1]/15'
+                          : 'bg-[#0B0C10] text-[#94A3B8] border-slate-700 hover:text-[#E2E8F0] hover:border-slate-600'
+                      }`}
+                      title="Sort Alphabetically by Bot Name"
+                    >
+                      <Sliders className="w-3.5 h-3.5 text-[#66FCF1]" />
+                      <span>Name (A-Z)</span>
+                      {heartbeatSortKey === 'name' ? (
+                        heartbeatSortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-[#66FCF1]" /> : <ArrowDown className="w-3 h-3 text-[#66FCF1]" />
+                      ) : (
+                        <ArrowUpDown className="w-3 h-3 text-slate-500" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
                 {/* Grid of 10 nodes */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                  {heartbeats.map(bot => {
+                  {sortedHeartbeats.map(bot => {
                     const isPinging = bot.status === 'PINGING';
                     return (
                       <div
@@ -652,7 +751,9 @@ function TrinityCommandCenter() {
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75" />
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10B981]" />
                               </span>
-                              <span className="font-mono text-xs font-bold text-[#E2E8F0]">
+                              <span className={`font-mono text-xs font-bold ${
+                                heartbeatSortKey === 'name' ? 'text-[#66FCF1]' : 'text-[#E2E8F0]'
+                              }`}>
                                 {bot.name}
                               </span>
                             </div>
@@ -669,9 +770,13 @@ function TrinityCommandCenter() {
                             {bot.codename}
                           </div>
 
-                          <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 mb-2">
-                            <span>pm2:#{bot.pm2Id} (PID {bot.pid})</span>
-                            <span>{bot.memMb}MB</span>
+                          <div className="flex items-center justify-between text-[10px] font-mono mb-2">
+                            <span className={heartbeatSortKey === 'cpu' ? 'text-[#66FCF1] font-bold' : 'text-slate-400'}>
+                              CPU: {bot.cpuPct}%
+                            </span>
+                            <span className="text-slate-500">
+                              pm2:#{bot.pm2Id} • {bot.memMb}MB
+                            </span>
                           </div>
                         </div>
 
@@ -679,7 +784,7 @@ function TrinityCommandCenter() {
                           <div className="flex items-baseline justify-between mb-1.5">
                             <div className="flex items-baseline gap-1">
                               <span className={`text-base font-bold font-mono ${
-                                isPinging ? 'text-[#F59E0B]' : 'text-[#66FCF1]'
+                                isPinging ? 'text-[#F59E0B]' : heartbeatSortKey === 'latency' ? 'text-[#66FCF1]' : 'text-slate-200'
                               }`}>
                                 {isPinging ? '...' : `${bot.latencyMs}ms`}
                               </span>
@@ -1059,36 +1164,8 @@ function TrinityCommandCenter() {
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-6"
             >
-              {/* Veto Sentinels Status Box */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-[#1F2833]/80 backdrop-blur-md border border-slate-700/60">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-mono font-bold text-[#F59E0B] uppercase">CHRONOS SENTINEL</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">ARMED</span>
-                  </div>
-                  <h3 className="text-sm font-bold text-white mb-1">Time & Rollover Guardian</h3>
-                  <p className="text-xs text-[#94A3B8] leading-relaxed mb-3">
-                    Activează VETO complet între orele de LBMA Fixing și Rollover zilnic (22:00 RO).
-                  </p>
-                  <div className="text-[11px] font-mono text-slate-400 bg-[#121822] p-2 rounded border border-slate-700/60">
-                    Status: Next Veto Window at 22:00:00 EET
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-[#1F2833]/80 backdrop-blur-md border border-slate-700/60">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-mono font-bold text-[#EF4444] uppercase">HADES SENTINEL</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">ARMED</span>
-                  </div>
-                  <h3 className="text-sm font-bold text-white mb-1">COT Extreme Percentile Sentinel</h3>
-                  <p className="text-xs text-[#94A3B8] leading-relaxed mb-3">
-                    Blochează intrările când poziționarea Hedge Fund net long/short depășește percentila 90%.
-                  </p>
-                  <div className="text-[11px] font-mono text-slate-400 bg-[#121822] p-2 rounded border border-slate-700/60">
-                    Status: Net Crowding at 64% (Safe Band)
-                  </div>
-                </div>
-              </div>
+              {/* Comprehensive System Health & cTrader Topology Solution */}
+              <SystemHealth onRefresh={handleSyncData} isLoading={isLoadingData} />
 
               {/* Vibe Coding 5 Rules Constitution */}
               <div className="bg-[#1F2833]/80 backdrop-blur-md rounded-xl border border-slate-700/60 p-6 shadow-xl">
